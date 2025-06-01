@@ -12,6 +12,7 @@ python-binance = "^1.0.27"
 pandas = "^2.2.3"
 pandas-ta = "^0.3.14b0"
 numpy = "^1.23.5"
+setuptools = "^78.1.0"
 
 
 [build-system]
