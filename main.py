@@ -10,12 +10,14 @@ load_dotenv()
 
 def main():
     client = Client(os.getenv("BINANCE_API_KEY"), os.getenv("BINANCE_API_SECRET"))
+    symbol_list = ['BTCUSDT','CHRUSDT']
 
     shared_data = SharedData()
     chart_manager = ChartDataManager(client, "BTCUSDT", Client.KLINE_INTERVAL_1HOUR, shared_data)
 
     # 초기 데이터 로드
-    chart_manager.initialize_data()
+    for symbol in symbol_list:
+        chart_manager.initialize_data(symbol=symbol)
 
     while True:
         try:

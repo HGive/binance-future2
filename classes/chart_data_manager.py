@@ -3,15 +3,14 @@ from binance.client import Client
 from datetime import datetime
 
 class ChartDataManager:
-    def __init__(self, client: Client, symbol: str, interval: str, shared_state):
+    def __init__(self, client: Client, interval: str, shared_state):
         self.client = client
-        self.symbol = symbol
         self.interval = interval
         self.shared_state = shared_state
         self.max_len = 50
 
-    def initialize_data(self):
-        klines = self.client.get_klines(symbol=self.symbol, interval=self.interval, limit=self.max_len)
+    def initialize_data(self, symbol: str,):
+        klines = self.client.get_klines(symbol=symbol, interval=self.interval, limit=self.max_len)
         df = pd.DataFrame(klines, columns=[
             "open_time", "open", "high", "low", "close", "volume",
             "close_time", "quote_asset_volume", "num_trades",
@@ -22,16 +21,16 @@ class ChartDataManager:
         for col in ["open", "high", "low", "close", "volume"]:
             df[col] = df[col].astype(float)
         df["row_num"] = range(1, len(df) + 1)
-        self.shared_state.chart_data[self.symbol] = df
-        print(f"[{self.symbol}] 초기 차트 데이터 로드 완료 ({len(df)}개)")
+        self.shared_state.chart_data[symbol] = df
+        print(f"[{symbol}] 초기 차트 데이터 로드 완료 ({len(df)}개)")
 
-    def update_latest_candle(self):
-        latest = self.client.get_klines(symbol=self.symbol, interval=self.interval, limit=1)[0]
+    def update_latest_candle(self, symbol: str):
+        latest = self.client.get_klines(symbol=symbol, interval=self.interval, limit=1)[0]
         open_time = pd.to_datetime(latest[0], unit='ms')
 
-        df = self.shared_state.chart_data.get(self.symbol)
+        df = self.shared_state.chart_data.get(symbol)
         if df is None:
-            print(f"[{self.symbol}] 초기화가 먼저 필요합니다.")
+            print(f"[{symbol}] 초기화가 먼저 필요합니다.")
             return
 
         if open_time not in df.index:
@@ -46,7 +45,7 @@ class ChartDataManager:
             df.loc[open_time] = new_row
             if len(df) > self.max_len:
                 df = df.iloc[1:]
-            self.shared_state.chart_data[self.symbol] = df
-            print(f"[{self.symbol}] 새로운 봉 추가됨: {open_time}")
+            self.shared_state.chart_data[symbol] = df
+            print(f"[{symbol}] 새로운 봉 추가됨: {open_time}")
         else:
-            print(f"[{self.symbol}] 이미 최신 봉 반영됨: {open_time}")
+            print(f"[{symbol}] 이미 최신 봉 반영됨: {open_time}")
